@@ -1,11 +1,13 @@
 import copy
 import random
+import sys
+import traceback
 import shlex
 
 import modules.scripts as scripts
 import gradio as gr
 
-from modules import sd_samplers, errors
+from modules import sd_samplers
 from modules.processing import Processed, process_images
 from modules.shared import state
 
@@ -121,7 +123,8 @@ class Script(scripts.Script):
         return [checkbox_iterate, checkbox_iterate_batch, prompt_txt]
 
     def run(self, p, checkbox_iterate, checkbox_iterate_batch, prompt_txt: str):
-        lines = [x for x in (x.strip() for x in prompt_txt.splitlines()) if x]
+        lines = [x.strip() for x in prompt_txt.splitlines()]
+        lines = [x for x in lines if len(x) > 0]
 
         p.do_not_save_grid = True
 
@@ -133,7 +136,8 @@ class Script(scripts.Script):
                 try:
                     args = cmdargs(line)
                 except Exception:
-                    errors.report(f"Error parsing line {line} as commandline", exc_info=True)
+                    print(f"Error parsing line {line} as commandline:", file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
                     args = {"prompt": line}
             else:
                 args = {"prompt": line}
